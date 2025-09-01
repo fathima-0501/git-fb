@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Element Selectors Example</title>
+</head>
+<body>
+  <h1 id="header">Welcome!</h1>
+  <p class="info">This is paragraph one.</p>
+  <p class="info">This is paragraph two.</p>
+  <div class="container">
+    <span>Some text inside a span.</span>
+  </div>
+
+  <script>
+    // Select element by ID
+    const header = document.getElementById('header');
+    console.log('Element with ID "header":', header);
+
+    // Select elements by class name
+    const infoParagraphs = document.getElementsByClassName('info');
+    console.log('Elements with class "info":', infoParagraphs);
+    for(let p of infoParagraphs) {
+      console.log(' -', p.textContent);
+    }
+
+    // Select elements by tag name
+    const paragraphs = document.getElementsByTagName('p');
+    console.log('All <p> elements:', paragraphs);
+    for(let p of paragraphs) {
+      console.log(' *', p.textContent);
+    }
+
+    // Select the first element matching a CSS selector
+    const firstInfo = document.querySelector('.info');
+    console.log('First element with class "info":', firstInfo.textContent);
+
+    // Select all elements matching a CSS selector
+    const allInfo = document.querySelectorAll('.info');
+    console.log('All elements with class "info":');
+    allInfo.forEach((el, i) => {
+      console.log(` ${i + 1}.`, el.textContent);
+    });
+  </script>
+</body>
+</html>
+
+
+
