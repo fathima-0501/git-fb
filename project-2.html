@@ -1,0 +1,243 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive ES6 & DOM Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        .demo-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+        button {
+            padding: 10px 15px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-left: 5px solid #007bff;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ES6 & DOM Manipulation Demo</h1>
+
+    <div class="demo-section">
+        <h2>1. DOM Manipulation & Arrow Functions</h2>
+        <p id="dom-paragraph">Click the button below to change this text and add a new element.</p>
+        <button id="dom-button">Click to Change</button>
+    </div>
+
+    <hr>
+
+    <div class="demo-section">
+        <h2>2. Spread & Rest Operators</h2>
+        <p>Click to see how these operators combine arrays and collect arguments.</p>
+        <button id="spread-rest-button">Run Demo</button>
+    </div>
+
+    <hr>
+
+    <div class="demo-section">
+        <h2>3. Destructuring</h2>
+        <p>Click to see how we can easily extract values from arrays and objects.</p>
+        <button id="destructuring-button">Run Demo</button>
+    </div>
+
+    <hr>
+
+    <div class="demo-section">
+        <h2>4. Type Coercion & Template Literals</h2>
+        <p>Click to see implicit type conversion and a modern way to format strings.</p>
+        <button id="coercion-template-button">Run Demo</button>
+    </div>
+
+    <hr>
+
+    <div class="demo-section">
+        <h2>5. Hoisting</h2>
+        <p>Click to see how JavaScript 'hoists' variable and function declarations to the top of their scope.</p>
+        <button id="hoisting-button">Run Demo</button>
+    </div>
+
+    <hr>
+
+    <div id="output">
+        <h3>Output:</h3>
+        <pre id="output-content">Results will appear here...</pre>
+    </div>
+
+</div>
+
+<script>
+    // Get DOM elements
+    const domParagraph = document.getElementById('dom-paragraph');
+    const domButton = document.getElementById('dom-button');
+    const spreadRestButton = document.getElementById('spread-rest-button');
+    const destructuringButton = document.getElementById('destructuring-button');
+    const coercionTemplateButton = document.getElementById('coercion-template-button');
+    const hoistingButton = document.getElementById('hoisting-button');
+    const outputContent = document.getElementById('output-content');
+
+    // Helper function to clear and display output
+    const showOutput = (message) => {
+        outputContent.textContent = message;
+    };
+
+    // 1. DOM Manipulation & Arrow Functions
+    domButton.addEventListener('click', () => {
+        // DOM Manipulation
+        domParagraph.textContent = 'This text has been changed!';
+        const newParagraph = document.createElement('p');
+        newParagraph.textContent = 'This is a new paragraph added dynamically.';
+        newParagraph.style.color = '#007bff';
+        domParagraph.parentNode.appendChild(newParagraph);
+
+        // Arrow function example
+        const greet = (name) => `Hello, ${name}!`;
+        showOutput(`Arrow function says: ${greet('World')}`);
+    });
+
+    // 2. Spread & Rest Operators
+    spreadRestButton.addEventListener('click', () => {
+        // Spread Operator
+        const arr1 = [1, 2, 3];
+        const arr2 = [4, 5, 6];
+        const combinedArray = [...arr1, ...arr2, 7, 8];
+        const obj1 = { a: 1, b: 2 };
+        const obj2 = { c: 3, d: 4 };
+        const combinedObject = { ...obj1, ...obj2 };
+
+        // Rest Operator
+        const sum = (...numbers) => {
+            return numbers.reduce((total, num) => total + num, 0);
+        };
+
+        const outputMessage = `
+Spread Operator:
+Combined Array: [${combinedArray}]
+Combined Object: ${JSON.stringify(combinedObject)}
+
+Rest Operator:
+Sum of 1, 2, 3, 4: ${sum(1, 2, 3, 4)}
+`;
+        showOutput(outputMessage);
+    });
+
+    // 3. Destructuring
+    destructuringButton.addEventListener('click', () => {
+        // Array Destructuring
+        const fruits = ['apple', 'banana', 'cherry'];
+        const [firstFruit, secondFruit, thirdFruit] = fruits;
+
+        // Object Destructuring
+        const person = {
+            name: 'Alice',
+            age: 30,
+            city: 'New York'
+        };
+        const { name, age } = person;
+
+        const outputMessage = `
+Array Destructuring:
+First fruit: ${firstFruit}
+Second fruit: ${secondFruit}
+
+Object Destructuring:
+Name: ${name}
+Age: ${age}
+`;
+        showOutput(outputMessage);
+    });
+
+    // 4. Type Coercion & Template Literals
+    coercionTemplateButton.addEventListener('click', () => {
+        // Type Coercion (Implicit)
+        const num = 5;
+        const str = '10';
+        const result = num + str; // The number is coerced to a string
+
+        // Template Literals (String Literals)
+        const product = 'Laptop';
+        const price = 1200;
+        const message = `The product is a ${product}, and its price is $${price}.`;
+
+        const outputMessage = `
+Type Coercion:
+Result of 5 + '10' is '${result}' (string concatenation).
+Type of the result is: ${typeof result}
+
+Template Literals:
+Message: ${message}
+`;
+        showOutput(outputMessage);
+    });
+
+    // 5. Hoisting
+    hoistingButton.addEventListener('click', () => {
+        // Function declaration is hoisted
+        functionHoisted();
+
+        // Variable declaration is hoisted, but not the assignment
+        varHoisted();
+
+        function functionHoisted() {
+            // This function can be called before its declaration in the code.
+            showOutput("Hoisting Demo:\n\n'functionHoisted' was called successfully before its definition.");
+        }
+
+        function varHoisted() {
+            var myVar; // Declaration is hoisted, but the value is 'undefined'
+            try {
+                // This will output 'undefined' because the declaration is hoisted.
+                outputContent.textContent += "\n'myVar' is accessible before its assignment, but its value is: " + myVar;
+            } catch (e) {
+                // With 'let' or 'const', this would throw a ReferenceError.
+                outputContent.textContent += "\n'let' or 'const' would have thrown an error here.";
+            }
+            myVar = "I'm a hoisted variable!";
+            // The value is now assigned
+        }
+    });
+
+</script>
+
+</body>
+</html>
+```
