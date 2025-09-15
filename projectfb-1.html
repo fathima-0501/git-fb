@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Registration & Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      max-width: 400px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #aaa;
+    }
+    .hidden {
+      display: none;
+    }
+    input, textarea {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #28a745;
+      border: none;
+      color: white;
+      border-radius: 5px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .error { color: red; }
+    .success { color: green; }
+  </style>
+</head>
+<body>
+
+  <!-- Registration Form -->
+  <div class="container" id="registrationForm">
+    <h2>Registration</h2>
+    <label>Full Name:</label>
+    <input type="text" id="regName">
+
+    <label>Email:</label>
+    <input type="email" id="regEmail">
+
+    <label>Phone:</label>
+    <input type="tel" id="regPhone">
+
+    <label>Password:</label>
+    <input type="password" id="regPassword">
+
+    <button onclick="registerUser()">Register</button>
+    <p id="regMsg"></p>
+  </div>
+
+  <!-- Login Form -->
+  <div class="container hidden" id="loginForm">
+    <h2>Login</h2>
+    <label>Email:</label>
+    <input type="email" id="loginEmail">
+
+    <label>Password:</label>
+    <input type="password" id="loginPassword">
+
+    <button onclick="loginUser()">Login</button>
+    <p id="loginMsg"></p>
+  </div>
+
+  <script>
+    let registeredUser = {};
+
+    function registerUser() {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const password = document.getElementById('regPassword').value;
+
+      if (name && email && phone && password) {
+        registeredUser = { name, email, phone, password };
+
+        document.getElementById('registrationForm').classList.add('hidden');
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('regMsg').innerText = '';
+      } else 
+    }
