@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Prediction System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #50179e;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main Container -->
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full">
+        <!-- Safety Warning Banner -->
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6" role="alert">
+            <strong class="font-bold">Important Warning!</strong>
+            <span class="block sm:inline"> This is a demonstration app. The predictions are not based on real medical science and should not be used for actual health decisions. Consult a professional for medical advice.</span>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Healthcare Risk Assessment</h1>
+        <p class="text-center text-gray-600 mb-8">Fill out the form below to get a simulated health risk prediction.</p>
+
+        <!-- Form Section -->
+        <form id="predictionForm" class="space-y-6">
+            <div>
+                <label for="age" class="block text-sm font-medium text-gray-700">Age</label>
+                <input type="number" id="age" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+            </div>
+            <div>
+                <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
+                <select id="gender" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                    <option value="">Select...</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div>
+                <label for="bloodPressure" class="block text-sm font-medium text-gray-700">Systolic Blood Pressure (e.g., 120)</label>
+                <input type="number" id="bloodPressure" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+            </div>
+            <div>
+                <label for="cholesterol" class="block text-sm font-medium text-gray-700">Cholesterol Level (e.g., 180)</label>
+                <input type="number" id="cholesterol" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+            </div>
+            <div>
+                <label for="familyHistory" class="block text-sm font-medium text-gray-700">Family History (e.g., "heart disease")</label>
+                <textarea id="familyHistory" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <span id="btnText">Get Prediction</span>
+                <div id="spinner" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            </button>
+        </form>
+
+        <!-- Result Section -->
+        <div id="resultContainer" class="hidden mt-8 p-6 rounded-lg shadow-inner bg-green-50">
+            <h2 class="text-xl font-semibold text-gray-800">Prediction Result:</h2>
+            <p id="predictionText" class="mt-2 text-lg text-green-700 font-bold"></p>
+        </div>
+
+        <!-- Past Submissions Section -->
+        <div class="mt-10">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Your Past Assessments</h2>
+            <div id="user-id-display" class="mb-4 text-sm text-gray-500"></div>
+            <div id="submissionsContainer" class="space-y-4">
+                <p id="no-submissions" class="text-gray-500 text-center">No past assessments found. Submit one above to see it here.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, onSnapshot, collection, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase global variables are provided by the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth, userId;
+
+        // Initialize Firebase
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            console.log("Firebase initialized successfully.");
+
+            // Handle user authentication
+            if (initialAuthToken) {
+                signInWithCustomToken(auth, initialAuthToken).then(() => {
+                    console.log("Signed in with custom token.");
+                }).catch(error => {
+                    console.error("Custom token sign-in failed, signing in anonymously:", error);
+                    signInAnonymously(auth);
+                });
+            } else {
+                signInAnonymously(auth).then(() => {
+                    console.log("Signed in anonymously.");
+                }).catch(error => {
+                    console.error("Anonymous sign-in failed:", error);
+                });
+            }
+
+            // Listen for auth state changes
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    document.getElementById('user-id-display').innerText = `User ID: ${userId}`;
+                    console.log("User authenticated with ID:", userId);
+                    setupRealtimeListener(userId);
+                } else {
+                    console.log("User is not authenticated.");
+                    document.getElementById('user-id-display').innerText = 'Signing in...';
+                }
+            });
+
+        } catch (e) {
+            console.error("Firebase initialization failed:", e);
+        }
+
+        const form = document.getElementById('predictionForm');
+        const resultContainer = document.getElementById('resultContainer');
+        const predictionText = document.getElementById('predictionText');
+        const btnText = document.getElementById('btnText');
+        const spinner = document.getElementById('spinner');
+        const submissionsContainer = document.getElementById('submissionsContainer');
+        const noSubmissionsText = document.getElementById('no-submissions');
+
+        // Mock prediction function
+        function predictRisk(data) {
+            let risk = "Low Risk";
+            let reasons = [];
+
+            // Simple rule-based prediction logic
+            if (data.age > 60) {
+                risk = "High Risk";
+                reasons.push("Age > 60");
+            } else if (data.age > 40) {
+                risk = "Medium Risk";
+                reasons.push("Age > 40");
+            }
+
+            if (data.bloodPressure > 140) {
+                risk = "High Risk";
+                reasons.push("High Blood Pressure");
+            } else if (data.bloodPressure > 120 && risk !== "High Risk") {
+                risk = "Medium Risk";
+                reasons.push("Elevated Blood Pressure");
+            }
+
+            if (data.cholesterol > 240) {
+                risk = "High Risk";
+                reasons.push("High Cholesterol");
+            } else if (data.cholesterol > 200 && risk !== "High Risk") {
+                risk = "Medium Risk";
+                reasons.push("Elevated Cholesterol");
+            }
+
+            if (data.familyHistory.toLowerCase().includes('heart') || data.familyHistory.toLowerCase().includes('cancer')) {
+                risk = "High Risk";
+                reasons.push("Family History of significant disease");
+            }
+
+            if (reasons.length === 0) {
+                reasons.push("All inputs are within a healthy range for this mock assessment.");
+            }
+
+            return { risk, reasons };
+        }
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Disable button and show spinner
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            btnText.innerText = "Calculating...";
+            spinner.classList.remove('hidden');
+
+            const formData = {
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                bloodPressure: parseInt(document.getElementById('bloodPressure').value),
+                cholesterol: parseInt(document.getElementById('cholesterol').value),
+                familyHistory: document.getElementById('familyHistory').value,
+                timestamp: serverTimestamp()
+            };
+
+            const prediction = predictRisk(formData);
+
+            try {
+                // Save data to Firestore
+                const predictionsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/health_predictions`);
+                await addDoc(predictionsCollectionRef, {
+                    ...formData,
+                    prediction: prediction.risk,
+                    reasons: prediction.reasons
+                });
+                console.log("Prediction data saved to Firestore.");
+
+                // Display result
+                predictionText.innerText = `${prediction.risk}`;
+                resultContainer.classList.remove('hidden');
+
+                if (prediction.risk === 'High Risk') {
+                    resultContainer.classList.remove('bg-green-50', 'bg-yellow-50');
+                    resultContainer.classList.add('bg-red-50');
+                    predictionText.classList.remove('text-green-700', 'text-yellow-700');
+                    predictionText.classList.add('text-red-700');
+                } else if (prediction.risk === 'Medium Risk') {
+                    resultContainer.classList.remove('bg-green-50', 'bg-red-50');
+                    resultContainer.classList.add('bg-yellow-50');
+                    predictionText.classList.remove('text-green-700', 'text-red-700');
+                    predictionText.classList.add('text-yellow-700');
+                } else {
+                    resultContainer.classList.remove('bg-red-50', 'bg-yellow-50');
+                    resultContainer.classList.add('bg-green-50');
+                    predictionText.classList.remove('text-red-700', 'text-yellow-700');
+                    predictionText.classList.add('text-green-700');
+                }
+
+            } catch (e) {
+                console.error("Error saving data or getting prediction:", e);
+                predictionText.innerText = "An error occurred. Please try again.";
+                resultContainer.classList.remove('hidden');
+                resultContainer.classList.remove('bg-green-50');
+                resultContainer.classList.add('bg-red-50');
+                predictionText.classList.remove('text-green-700');
+                predictionText.classList.add('text-red-700');
+            } finally {
+                // Re-enable button and hide spinner
+                submitBtn.disabled = false;
+                btnText.innerText = "Get Prediction";
+                spinner.classList.add('hidden');
+            }
+        });
+
+        // Set up real-time listener for user's past submissions
+        function setupRealtimeListener(currentUserId) {
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/health_predictions`));
+            
+            onSnapshot(q, (querySnapshot) => {
+                const submissions = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    submissions.push({ id: doc.id, ...data });
+                });
+
+                submissions.sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent
+
+                displaySubmissions(submissions);
+            }, (error) => {
+                console.error("Error fetching submissions:", error);
+            });
+        }
+
+        function displaySubmissions(submissions) {
+            submissionsContainer.innerHTML = ''; // Clear previous submissions
+            if (submissions.length === 0) {
+                noSubmissionsText.classList.remove('hidden');
+                return;
+            }
+            noSubmissionsText.classList.add('hidden');
+
+            submissions.forEach(sub => {
+                const submissionCard = document.createElement('div');
+                submissionCard.className = 'bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-200';
+                
+                const timestamp = sub.timestamp ? new Date(sub.timestamp.toDate()).toLocaleString() : 'N/A';
+                
+                submissionCard.innerHTML = `
+                    <p class="text-sm text-gray-400 mb-1">${timestamp}</p>
+                    <div class="flex items-center mb-2">
+                        <span class="text-lg font-bold mr-2">Prediction:</span>
+                        <span class="text-lg font-semibold ${sub.prediction === 'High Risk' ? 'text-red-600' : sub.prediction === 'Medium Risk' ? 'text-yellow-600' : 'text-green-600'}">${sub.prediction}</span>
+                    </div>
+                    <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
+                        <li>Age: ${sub.age}</li>
+                        <li>Gender: ${sub.gender}</li>
+                        <li>Blood Pressure: ${sub.bloodPressure}</li>
+                        <li>Cholesterol: ${sub.cholesterol}</li>
+                    </ul>
+                    <p class="mt-2 text-sm text-gray-700 font-medium">Reasoning:</p>
+                    <ul class="text-xs text-gray-500 space-y-1 pl-5">
+                        ${sub.reasons.map(reason => `<li>${reason}</li>`).join('')}
+                    </ul>
+                `;
+                submissionsContainer.appendChild(submissionCard);
+            });
+        }
+
+    </script>
+</body>
+</html>
