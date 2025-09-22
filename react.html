@@ -1,0 +1,39 @@
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+
+const App = () => {
+  // Declare a state variable named 'count' and a function to update it named 'setCount'.
+  // Initialize 'count' to 0.
+  const [count, setCount] = useState(0);
+
+  // This function handles the click event.
+  const incrementCounter = () => {
+    // Call setCount with the new value.
+    setCount(count + 1);
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg text-center transform transition duration-500 hover:scale-105 w-full max-w-sm">
+        <h1 className="text-4xl font-extrabold mb-4 text-blue-600 dark:text-blue-400">
+          React Counter
+        </h1>
+        <p className="text-6xl font-black mb-6">
+          {count}
+        </p>
+        <button
+          onClick={incrementCounter}
+          className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50"
+        >
+          Increment
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Mount the App component to the DOM.
+const container = document.getElementById('root');
+ReactDOM.render(<App />, container);
+
+export default App;
