@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive MySQL Guide for Healthcare DB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Stone and Teal -->
+    <!-- Application Structure Plan: The application transforms a static MySQL tutorial into an interactive learning environment. A tab-based navigation ("Schema & Setup", "Data Manipulation", "Advanced Queries", "Scripts & API") breaks the content into logical, digestible sections. This task-oriented structure is more intuitive for learning than a linear document. Each section provides interactive elements (e.g., "Execute Query" buttons) that give users immediate visual feedback by manipulating a simulated database (HTML tables and a chart). This hands-on approach makes abstract SQL commands concrete and understandable, significantly improving user engagement and comprehension compared to passively reading a script. -->
+    <!-- Visualization & Content Choices: 
+    - Report Info: `CREATE TABLE` -> Goal: Inform -> Viz: Styled HTML tables -> Interaction: Button to "create" and display the table schema -> Justification: Visually represents the abstract concept of a database table structure.
+    - Report Info: `INSERT`, `UPDATE` data -> Goal: Show Change -> Viz: HTML table rows, dynamic stat cards, Chart.js bar chart -> Interaction: Buttons to add/update data, triggering visual changes in the table and chart -> Justification: Provides immediate, tangible feedback on how data manipulation queries affect the database state and its visualization.
+    - Report Info: Subqueries -> Goal: Compare/Filter -> Viz: A "Results" panel and highlighted rows in the main table -> Interaction: Button to "run" the subquery, which filters the dataset and displays the outcome -> Justification: Clearly demonstrates the power of subqueries to extract specific information from a larger dataset.
+    - Report Info: File structures -> Goal: Organize/Inform -> Viz: HTML/CSS styled divs mimicking a directory tree -> Interaction: None -> Justification: Presents conceptual information in a clear, graphical format that is easier to grasp than plain text.
+    - Library/Method: Vanilla JS for all logic, Chart.js (Canvas) for data visualization. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        code, pre { font-family: 'Fira Code', monospace; }
+        .nav-btn { transition: all 0.2s ease-in-out; }
+        .nav-btn.active { background-color: #0d9488; color: white; }
+        .nav-btn:not(.active) { background-color: #f1f5f9; color: #475569; }
+        .page-content { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .db-table {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: white;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        .db-table-header {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .db-table-row {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.3s;
+        }
+        .db-table-row:last-child { border-bottom: none; }
+        .db-table-cell {
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+        .highlight-row { background-color: #cffafe !important; }
+        .highlight-cell { background-color: #a7f3d0 !important; transition: background-color 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-teal-700">Interactive MySQL Guide</h1>
+            <p class="text-lg text-stone-600 mt-2">A Visual Way to Learn Database Commands for a Healthcare System</p>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
+            <button class="nav-btn active px-4 py-2 rounded-md font-semibold" data-target="setup">1. Schema & Setup</button>
+            <button class="nav-btn px-4 py-2 rounded-md font-semibold" data-target="manipulation">2. Data Manipulation</button>
+            <button class="nav-btn px-4 py-2 rounded-md font-semibold" data-target="queries">3. Advanced Queries</button>
+            <button class="nav-btn px-4 py-2 rounded-md font-semibold" data-target="scripts">4. Scripts & API Setup</button>
+        </nav>
+
+        <main>
+            <!-- SECTION 1: SCHEMA & SETUP -->
+            <div id="setup" class="page-content">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-teal-600 mb-4">Creating Your Database and Tables</h2>
+                    <p class="text-stone-600 mb-6">The first step in any database project is to define its structure. This involves creating the database itself and then defining the tables that will hold your data. Below, you can see the SQL commands to create a `patients` table. Click the button to simulate running the command and see the table schema appear.</p>
+                    <div class="grid md:grid-cols-2 gap-8 items-start">
+                        <div>
+                            <h3 class="font-semibold mb-2">Step 1: Create Database and Table</h3>
+                            <pre class="bg-stone-100 p-4 rounded-lg text-sm overflow-x-auto"><code>-- Create the database
+CREATE DATABASE IF NOT EXISTS healthcare_system;
+
+-- Select the database
+USE healthcare_system;
+
+-- Create a table for patient information
+CREATE TABLE patients (
+    patient_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    age INT,
+    gender VARCHAR(10),
+    blood_pressure VARCHAR(20),
+    cholesterol_level DECIMAL(10, 2)
+);</code></pre>
+                            <button id="createTableBtn" class="mt-4 w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition">Execute CREATE TABLE</button>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2">Visual Schema: `patients` Table</h3>
+                            <div id="patientsTableSchema" class="db-table hidden">
+                                <div class="db-table-header grid grid-cols-3">
+                                    <div class="db-table-cell">COLUMN</div>
+                                    <div class="db-table-cell">TYPE</div>
+                                    <div class="db-table-cell">KEY</div>
+                                </div>
+                                <div class="text-sm">
+                                    <div class="db-table-row grid grid-cols-3"><div class="db-table-cell">patient_id</div><div class="db-table-cell">INT</div><div class="db-table-cell">PRIMARY</div></div>
+                                    <div class="db-table-row grid grid-cols-3"><div class="db-table-cell">name</div><div class="db-table-cell">VARCHAR(255)</div><div class="db-table-cell"></div></div>
+                                    <div class="db-table-row grid grid-cols-3"><div class="db-table-cell">age</div><div class="db-table-cell">INT</div><div class="db-table-cell"></div></div>
+                                    <div class="db-table-row grid grid-cols-3"><div class="db-table-cell">gender</div><div class="db-table-cell">VARCHAR(10)</div><div class="db-table-cell"></div></div>
+                                    <div class="db-table-row grid grid-cols-3"><div class="db-table-cell">blood_pressure</div><div class="db-table-cell">VARCHAR(20)</div><div class="db-table-cell"></div></div>
+                                    <div class="db-table-row grid grid-cols-3"><div class="db-table-cell">cholesterol_level</div><div class="db-table-cell">DECIMAL(10,2)</div><div class="db-table-cell"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: DATA MANIPULATION -->
+            <div id="manipulation" class="page-content hidden">
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-teal-600 mb-4">Inserting and Updating Data</h2>
+                    <p class="text-stone-600 mb-6">Once your tables are created, you can manipulate the data within them using commands like `INSERT` and `UPDATE`. Interact with the commands below to populate the `patients` table and see how the data changes in real-time in both the table view and the chart.</p>
+                     
+                    <div class="grid md:grid-cols-3 gap-4 mb-8 text-center">
+                        <div class="bg-teal-50 p-4 rounded-lg"><div class="text-3xl font-bold text-teal-700" id="patientCount">0</div><div class="text-sm text-teal-600">Total Patients</div></div>
+                        <div class="bg-teal-50 p-4 rounded-lg"><div class="text-3xl font-bold text-teal-700" id="avgAge">0</div><div class="text-sm text-teal-600">Average Age</div></div>
+                        <div class="bg-teal-50 p-4 rounded-lg"><div class="text-3xl font-bold text-teal-700" id="avgCholesterol">0.00</div><div class="text-sm text-teal-600">Avg. Cholesterol</div></div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="font-semibold mb-2">Live Data: `patients` Table</h3>
+                            <div id="patientsTableLive" class="db-table">
+                                <div class="db-table-header grid grid-cols-4">
+                                    <div class="db-table-cell">patient_id</div>
+                                    <div class="db-table-cell">name</div>
+                                    <div class="db-table-cell">age</div>
+                                    <div class="db-table-cell">cholesterol_level</div>
+                                </div>
+                                <div id="patientsTableBody" class="text-sm">
+                                    <div class="db-table-row p-4 text-center text-stone-500">No data inserted yet.</div>
+                                </div>
+                            </div>
+                        </div>
+                         <div>
+                            <h3 class="font-semibold mb-2">Visualizing Cholesterol Levels</h3>
+                            <div class="chart-container bg-stone-50 p-2 rounded-lg">
+                                <canvas id="cholesterolChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 grid md:grid-cols-2 gap-8 items-start">
+                        <div>
+                            <h3 class="font-semibold mb-2">Step 2: Insert Data</h3>
+                            <pre class="bg-stone-100 p-4 rounded-lg text-sm overflow-x-auto"><code>-- Insert three patient records
+INSERT INTO patients (name, age, ...)
+VALUES
+('John Doe', 45, ..., 180.50),
+('Jane Smith', 50, ..., 210.75),
+('Sam Wilson', 62, ..., 255.00);</code></pre>
+                            <button id="insertDataBtn" class="mt-4 w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition">Execute INSERT</button>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2">Step 3: Update Data</h3>
+                            <pre class="bg-stone-100 p-4 rounded-lg text-sm overflow-x-auto"><code>-- Update John Doe's cholesterol
+UPDATE patients
+SET cholesterol_level = 195.25
+WHERE patient_id = 1;</code></pre>
+                            <button id="updateDataBtn" class="mt-4 w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition" disabled>Execute UPDATE</button>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- SECTION 3: ADVANCED QUERIES -->
+            <div id="queries" class="page-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-teal-600 mb-4">Running Advanced Queries</h2>
+                    <p class="text-stone-600 mb-6">Subqueries allow you to perform more complex filtering by running a query within another query. Use the buttons below to run subqueries against our patient dataset. The results will be displayed and the corresponding rows in the table will be highlighted.</p>
+                    
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="font-semibold mb-2">Patient Data</h3>
+                            <div id="patientsTableQuery" class="db-table">
+                                 <div class="db-table-header grid grid-cols-4">
+                                    <div class="db-table-cell">patient_id</div>
+                                    <div class="db-table-cell">name</div>
+                                    <div class="db-table-cell">age</div>
+                                    <div class="db-table-cell">cholesterol_level</div>
+                                </div>
+                                <div id="patientsTableQueryBody" class="text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                             <div class="mb-6">
+                                <h3 class="font-semibold mb-2">Query 1: Find Patients with Above-Average Cholesterol</h3>
+                                <pre class="bg-stone-100 p-4 rounded-lg text-sm overflow-x-auto"><code>SELECT name, cholesterol_level
+FROM patients
+WHERE cholesterol_level > (
+    SELECT AVG(cholesterol_level) 
+    FROM patients
+);</code></pre>
+                                <button id="runSubquery1" class="mt-4 w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition">Run Subquery 1</button>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold mb-2">Query Results</h3>
+                                <div id="queryResult1" class="bg-stone-100 p-4 rounded-lg min-h-[80px] text-stone-600">Results will appear here.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: SCRIPTS & API -->
+            <div id="scripts" class="page-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-teal-600 mb-4">Using Scripts and API Integration</h2>
+                    <p class="text-stone-600 mb-6">In real-world projects, you don't type commands one by one. You save them in `.sql` script files for easy execution. When integrating with an application (like a Node.js API), you typically have a directory to manage your database initialization scripts.</p>
+
+                    <div class="grid md:grid-cols-2 gap-8 items-start">
+                        <div>
+                            <h3 class="font-semibold mb-2">Example `.sql` Script File</h3>
+                            <p class="text-sm text-stone-500 mb-2">This entire block of code can be saved as `database_script.sql` and run in one go to set up the database from scratch.</p>
+                            <pre class="bg-stone-100 p-4 rounded-lg text-sm overflow-x-auto h-96"><code>-- Script File for MySQL Workbench
+
+-- Drop tables to ensure a clean slate
+DROP TABLE IF EXISTS records;
+DROP TABLE IF EXISTS patients;
+
+-- Create the patients table
+CREATE TABLE patients (
+    patient_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    age INT,
+    gender VARCHAR(10),
+    blood_pressure VARCHAR(20),
+    cholesterol_level DECIMAL(10, 2)
+);
+
+-- Create the records table
+CREATE TABLE records (
+    record_id INT PRIMARY KEY AUTO_INCREMENT,
+    patient_id INT,
+    visit_date DATE NOT NULL,
+    diagnosis TEXT,
+    FOREIGN KEY (patient_id) 
+        REFERENCES patients(patient_id)
+);
+
+-- Populate the tables with initial data
+INSERT INTO patients (name, age, ...)
+VALUES ('John Doe', 45, ...);</code></pre>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2">Typical API Project Structure</h3>
+                            <p class="text-sm text-stone-500 mb-2">Your API code would execute the `init.sql` file to set up the database when the application starts.</p>
+                            <div class="bg-stone-100 p-4 rounded-lg font-mono text-sm">
+                                <div class="flex items-center">
+                                    <span>📁 my_api_project/</span>
+                                </div>
+                                <div class="pl-4 border-l-2 ml-2">
+                                    <div class="flex items-center"><span>📄 app.js</span></div>
+                                    <div class="flex items-center"><span>📄 package.json</span></div>
+                                    <div class="flex items-center"><span>📁 database/</span></div>
+                                    <div class="pl-4 border-l-2 ml-2">
+                                         <div class="flex items-center font-semibold text-teal-700"><span>📄 init.sql</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const pageContents = document.querySelectorAll('.page-content');
+
+    const dbData = {
+        patients: [],
+        initialState: [
+            { patient_id: 1, name: 'John Doe', age: 45, gender: 'male', blood_pressure: '120/80', cholesterol_level: 180.50 },
+            { patient_id: 2, name: 'Jane Smith', age: 50, gender: 'female', blood_pressure: '135/85', cholesterol_level: 210.75 },
+            { patient_id: 3, name: 'Sam Wilson', age: 62, gender: 'male', blood_pressure: '150/90', cholesterol_level: 255.00 }
+        ],
+        dataInserted: false
+    };
+
+    let cholesterolChartInstance = null;
+    
+    const elements = {
+        createTableBtn: document.getElementById('createTableBtn'),
+        patientsTableSchema: document.getElementById('patientsTableSchema'),
+        insertDataBtn: document.getElementById('insertDataBtn'),
+        updateDataBtn: document.getElementById('updateDataBtn'),
+        patientsTableBody: document.getElementById('patientsTableBody'),
+        patientsTableQueryBody: document.getElementById('patientsTableQueryBody'),
+        patientCount: document.getElementById('patientCount'),
+        avgAge: document.getElementById('avgAge'),
+        avgCholesterol: document.getElementById('avgCholesterol'),
+        cholesterolChart: document.getElementById('cholesterolChart').getContext('2d'),
+        runSubquery1: document.getElementById('runSubquery1'),
+        queryResult1: document.getElementById('queryResult1'),
+    };
+
+    const navigate = (targetId) => {
+        navButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.target === targetId);
+        });
+        pageContents.forEach(content => {
+            content.classList.toggle('hidden', content.id !== targetId);
+        });
+    };
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => navigate(button.dataset.target));
+    });
+
+    const updateStats = () => {
+        const patientCount = dbData.patients.length;
+        elements.patientCount.textContent = patientCount;
+        if (patientCount > 0) {
+            const totalAge = dbData.patients.reduce((sum, p) => sum + p.age, 0);
+            elements.avgAge.textContent = Math.round(totalAge / patientCount);
+            const totalCholesterol = dbData.patients.reduce((sum, p) => sum + p.cholesterol_level, 0);
+            elements.avgCholesterol.textContent = (totalCholesterol / patientCount).toFixed(2);
+        } else {
+            elements.avgAge.textContent = '0';
+            elements.avgCholesterol.textContent = '0.00';
+        }
+    };
+    
+    const renderTable = (tbody) => {
+        tbody.innerHTML = '';
+        if (dbData.patients.length === 0) {
+            tbody.innerHTML = `<div class="db-table-row p-4 text-center text-stone-500">No data inserted yet.</div>`;
+            return;
+        }
+        dbData.patients.forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'db-table-row grid grid-cols-4';
+            row.dataset.id = p.patient_id;
+            row.innerHTML = `
+                <div class="db-table-cell">${p.patient_id}</div>
+                <div class="db-table-cell">${p.name}</div>
+                <div class="db-table-cell">${p.age}</div>
+                <div class="db-table-cell" data-field="cholesterol_level">${p.cholesterol_level.toFixed(2)}</div>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+
+    const updateChart = () => {
+        if (cholesterolChartInstance) {
+            cholesterolChartInstance.destroy();
+        }
+        cholesterolChartInstance = new Chart(elements.cholesterolChart, {
+            type: 'bar',
+            data: {
+                labels: dbData.patients.map(p => p.name),
+                datasets: [{
+                    label: 'Cholesterol Level',
+                    data: dbData.patients.map(p => p.cholesterol_level),
+                    backgroundColor: '#14b8a6',
+                    borderColor: '#0f766e',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'mg/dL' } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.dataset.label}: ${context.raw.toFixed(2)} mg/dL`
+                        }
+                    }
+                }
+            }
+        });
+    };
+    
+    elements.createTableBtn.addEventListener('click', () => {
+        elements.patientsTableSchema.classList.remove('hidden');
+        elements.createTableBtn.textContent = 'Table Created!';
+        elements.createTableBtn.disabled = true;
+    });
+
+    elements.insertDataBtn.addEventListener('click', () => {
+        if (dbData.dataInserted) return;
+        dbData.patients = JSON.parse(JSON.stringify(dbData.initialState));
+        dbData.dataInserted = true;
+        renderTable(elements.patientsTableBody);
+        renderTable(elements.patientsTableQueryBody);
+        updateStats();
+        updateChart();
+        elements.updateDataBtn.disabled = false;
+        elements.insertDataBtn.textContent = 'Data Inserted!';
+        elements.insertDataBtn.disabled = true;
+    });
+    
+    elements.updateDataBtn.addEventListener('click', () => {
+        const patientToUpdate = dbData.patients.find(p => p.patient_id === 1);
+        if (patientToUpdate) {
+            patientToUpdate.cholesterol_level = 195.25;
+            renderTable(elements.patientsTableBody);
+            renderTable(elements.patientsTableQueryBody);
+
+            const cellToHighlight = elements.patientsTableBody.querySelector(`[data-id='1'] [data-field='cholesterol_level']`);
+            cellToHighlight.classList.add('highlight-cell');
+            setTimeout(() => cellToHighlight.classList.remove('highlight-cell'), 1500);
+
+            updateStats();
+            updateChart();
+            elements.updateDataBtn.textContent = 'Data Updated!';
+            elements.updateDataBtn.disabled = true;
+        }
+    });
+
+    elements.runSubquery1.addEventListener('click', () => {
+        if (!dbData.dataInserted) {
+            elements.queryResult1.innerHTML = '<p class="text-red-600">Please insert data on Tab 2 before running a query.</p>';
+            return;
+        }
+        
+        const totalCholesterol = dbData.patients.reduce((sum, p) => sum + p.cholesterol_level, 0);
+        const avgCholesterol = totalCholesterol / dbData.patients.length;
+        
+        const results = dbData.patients.filter(p => p.cholesterol_level > avgCholesterol);
+        
+        elements.queryResult1.innerHTML = `
+            <p class="text-sm mb-2">Query found ${results.length} patient(s) with cholesterol higher than the average of ${avgCholesterol.toFixed(2)}.</p>
+            <ul class="list-disc pl-5 font-semibold text-teal-700">
+                ${results.map(r => `<li>${r.name} (${r.cholesterol_level.toFixed(2)})</li>`).join('')}
+            </ul>
+        `;
+        
+        const allRows = elements.patientsTableQueryBody.querySelectorAll('.db-table-row');
+        allRows.forEach(row => row.classList.remove('highlight-row'));
+        
+        results.forEach(r => {
+            const row = elements.patientsTableQueryBody.querySelector(`[data-id='${r.patient_id}']`);
+            if (row) row.classList.add('highlight-row');
+        });
+    });
+
+    // Initial state
+    updateStats();
+    updateChart();
+    renderTable(elements.patientsTableBody);
+    renderTable(elements.patientsTableQueryBody);
+});
+</script>
+</body>
+</html>
